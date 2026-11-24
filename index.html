@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ban Truyền Thông Họ Đạo Tân Thành</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Khung xem ảnh phóng to toàn màn hình -->
+<div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox(event)" aria-label="Đóng">&times;</button>
+    <img id="lightbox-img" src="" alt="Ảnh phóng to">
+</div>
+    <!-- Banner đầu trang có chỗ đặt Logo Giáo Xứ -->
+    <header class="top-banner">
+        <div class="container banner-inner">
+            <div class="logo-box">
+                <!-- Bỏ file logo.png vào cùng thư mục VSCode hoặc đổi src thành link ảnh logo -->
+                <img src="https://lh3.googleusercontent.com/d/10aagcnPrq4JeoTp3gPCAjUJdBF0wtoJR" alt="Logo Giáo Xứ" id="parish-logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='grid';">
+            </div>
+
+            <div class="banner-title">
+                <p class="sub-diocese">GIÁO PHẬN CẦN THƠ</p>
+                <h1>HỌ ĐẠO TÂN THÀNH    
+                </h1>
+                <p class="slogan">Hiệp nhất trong đức tin • Yêu thương trong phục vụ</p>
+            </div>
+
+            <div class="banner-actions">
+                <button id="theme-toggle" class="theme-btn" title="Đổi giao diện Sáng / Tối">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Thanh điều hướng nhiều mục & mục con -->
+    <nav class="main-nav">
+        <div class="container nav-wrap">
+            <button class="menu-toggle" id="menu-toggle" aria-label="Mở menu">☰</button>
+            <ul class="nav-list" id="nav-list">
+                <!-- Icon Trang chủ SVG hiện đại -->
+                <li>
+                    <a href="#" class="nav-link home-link active" data-category="ALL" title="Trang chủ">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5.5v-6.5h-5V21H4a1 1 0 0 1-1-1V9.5z"/>
+                        </svg>
+                    </a>
+                </li>
+
+                <!-- Mục GIÁO XỨ có nhiều mục con bên trong -->
+                <li class="has-dropdown">
+                    <a href="#" class="nav-link" data-category="GROUP:Họ Đạo    " data-subs="Giới thiệu & Lịch sử,Linh mục & Hội đồng Mục vụ,Giờ lễ & Bí tích,Các Hội đoàn">
+                        GIÁO XỨ <span class="caret">▾</span>
+                    </a>
+                    <ul class="dropdown">
+                        <li><a href="#" class="nav-link" data-category="Giới thiệu & Lịch sử">Giới thiệu & Lịch sử</a></li>
+                        <li><a href="#" class="nav-link" data-category="Linh mục & Hội đồng Mục vụ">Linh mục & Hội đồng Mục vụ</a></li>
+                        <li><a href="#" class="nav-link" data-category="Giờ lễ & Bí tích">Giờ lễ & Bí tích</a></li>
+                        <li><a href="#" class="nav-link" data-category="Các Hội đoàn">Các Hội đoàn</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#" class="nav-link" data-category="Tin tức">TIN TỨC</a></li>
+
+                <!-- Mục GIÁO DỤC có nhiều mục con bên trong -->
+                <li class="has-dropdown">
+                    <a href="#" class="nav-link" data-category="GROUP:Giáo dục" data-subs="Giáo lý & Thiếu nhi,Dự tòng & Hôn nhân">
+                        GIÁO DỤC <span class="caret">▾</span>
+                    </a>
+                    <ul class="dropdown">
+                        <li><a href="#" class="nav-link" data-category="Giáo lý & Thiếu nhi">Giáo lý & Thiếu nhi</a></li>
+                        <li><a href="#" class="nav-link" data-category="Dự tòng & Hôn nhân">Dự tòng & Hôn nhân</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#" class="nav-link" data-category="Phụng vụ">PHỤNG VỤ</a></li>
+                <li><a href="#" class="nav-link" data-category="Thông báo">THÔNG BÁO</a></li>
+            </ul>
+
+            <div class="nav-search">
+                <input type="text" id="search-input" placeholder="Tìm bài viết...">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Thanh TIN MỚI -->
+    <div class="breaking-bar">
+        <div class="container breaking-inner">
+            <span class="breaking-tag">TIN MỚI</span>
+            <p id="breaking-text" class="breaking-title">Đang cập nhật bản tin mới nhất...</p>
+        </div>
+    </div>
+
+    <!-- Nội dung chính -->
+    <main class="container page-content">
+        <div class="content-box">
+            <div class="list-header">
+                <h2 id="current-category-title">Tất cả bài viết</h2>
+                <span id="post-count" class="post-count">0 bài</span>
+            </div>
+
+            <div id="loader" class="loader">
+                <div class="spinner"></div>
+                <p>Đang đồng bộ dữ liệu & hình ảnh...</p>
+            </div>
+
+            <div id="posts-list" class="posts-list"></div>
+        </div>
+    </main>
+
+    <!-- Modal đọc bài viết & xem toàn bộ Album ảnh Drive -->
+    <div id="post-modal" class="modal">
+        <div class="modal-card">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <img id="modal-img" src="" alt="">
+            <div class="modal-body">
+                <div class="modal-meta">
+                    <span id="modal-cat" class="cat-pill"></span>
+                    <span id="modal-date"></span>
+                </div>
+                <h2 id="modal-title"></h2>
+                <div id="modal-content-text" class="modal-text"></div>
+
+                <!-- Khu vực hiển thị thêm nhiều ảnh nếu link là thư mục Google Drive -->
+                <div id="modal-gallery" class="modal-gallery"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>© 2026 Ban Truyền Thông Họ Đạo Tân Thành</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
