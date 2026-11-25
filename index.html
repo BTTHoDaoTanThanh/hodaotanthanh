@@ -9,27 +9,41 @@
 </head>
 <body>
     <!-- Khung xem ảnh phóng to toàn màn hình -->
-<div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox(event)">
-    <button class="lightbox-close" onclick="closeLightbox(event)" aria-label="Đóng">&times;</button>
-    <img id="lightbox-img" src="" alt="Ảnh phóng to">
-</div>
+    <div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox(event)">
+        <button class="lightbox-close" onclick="closeLightbox(event)" aria-label="Đóng">&times;</button>
+        <img id="lightbox-img" src="" alt="Ảnh phóng to">
+    </div>
+
+    <!-- Popup tìm kiếm bài viết -->
+    <div id="search-modal" class="search-modal" aria-hidden="true">
+        <div class="search-modal-card">
+            <div class="search-modal-header">
+                <span class="search-modal-title">Tìm kiếm bài viết</span>
+                <button type="button" id="search-modal-close" class="search-modal-close" aria-label="Đóng tìm kiếm">&times;</button>
+            </div>
+            <div class="search-modal-input-wrap">
+                <svg class="search-modal-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="m20 20-3.5-3.5"/>
+                </svg>
+                <input type="text" id="search-input" placeholder="Nhập tiêu đề hoặc nội dung cần tìm..." autocomplete="off">
+                <button type="button" id="search-clear-btn" class="search-clear-btn" title="Xóa từ khóa" style="display:none;">&times;</button>
+            </div>
+            <p id="search-modal-hint" class="search-modal-hint">Gõ từ khóa để lọc bài viết trực tiếp bên dưới, nhấn Enter hoặc Đóng để xem danh sách.</p>
+        </div>
+    </div>
+
     <!-- Banner đầu trang có chỗ đặt Logo Giáo Xứ -->
     <header class="top-banner">
         <div class="container banner-inner">
             <div class="logo-box">
-                <!-- Bỏ file logo.png vào cùng thư mục VSCode hoặc đổi src thành link ảnh logo -->
-                <img src="https://lh3.googleusercontent.com/d/10aagcnPrq4JeoTp3gPCAjUJdBF0wtoJR" alt="Logo Giáo Xứ" id="parish-logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='grid';">
+                <img src="https://lh3.googleusercontent.com/d/10aagcnPrq4JeoTp3gPCAjUJdBF0wtoJR" alt="Logo Giáo Xứ" id="parish-logo" onerror="this.style.display='none';">
             </div>
 
             <div class="banner-title">
                 <p class="sub-diocese">GIÁO PHẬN CẦN THƠ</p>
-                <h1>HỌ ĐẠO TÂN THÀNH    
-                </h1>
-                <p class="slogan">TEST TEST TEST</p>
-            </div>
-
-            <div class="banner-actions">
-                <button id="theme-toggle" class="theme-btn" title="Đổi giao diện Sáng / Tối">🌙</button>
+                <h1>HỌ ĐẠO TÂN THÀNH</h1>
+                <p class="slogan">MỖI KITÔ HỮU LÀ MỘT MÔN ĐỆ THỪA SAI - "Anh em là ánh sáng thế gian" (Mt 5,14)</p>
             </div>
         </div>
     </header>
@@ -37,7 +51,7 @@
     <!-- Thanh điều hướng nhiều mục & mục con -->
     <nav class="main-nav">
         <div class="container nav-wrap">
-            <button class="menu-toggle" id="menu-toggle" aria-label="Mở menu">☰</button>
+            <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Mở menu">☰</button>
             <ul class="nav-list" id="nav-list">
                 <!-- Icon Trang chủ SVG hiện đại -->
                 <li>
@@ -49,37 +63,50 @@
                 </li>
 
                 <!-- Mục GIÁO XỨ có nhiều mục con bên trong -->
-                <li class="has-dropdown">
-                    <a href="#" class="nav-link" data-category="GROUP:Họ Đạo    " data-subs="Giới thiệu & Lịch sử,Linh mục & Hội đồng Mục vụ,Giờ lễ & Bí tích,Các Hội đoàn">
-                        GIÁO XỨ <span class="caret">▾</span>
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        HỌ ĐẠO <span class="caret">▾</span>
                     </a>
-                    <ul class="dropdown">
+                    <ul class="dropdown dropdown-menu">
                         <li><a href="#" class="nav-link" data-category="Giới thiệu & Lịch sử">Giới thiệu & Lịch sử</a></li>
-                        <li><a href="#" class="nav-link" data-category="Linh mục & Hội đồng Mục vụ">Linh mục & Hội đồng Mục vụ</a></li>
-                        <li><a href="#" class="nav-link" data-category="Giờ lễ & Bí tích">Giờ lễ & Bí tích</a></li>
-                        <li><a href="#" class="nav-link" data-category="Các Hội đoàn">Các Hội đoàn</a></li>
+                        <li><a href="#" class="nav-link" data-category="Hội đồng Mục Vụ">Hội Đồng Mục Vụ</a></li>
+                        <li><a href="#" class="nav-link" data-category="Giờ lễ">Giờ lễ</a></li>
+                        <li><a href="#" class="nav-link" data-category="Sinh Hoạt">Sinh Hoạt</a></li>
                     </ul>
                 </li>
 
                 <li><a href="#" class="nav-link" data-category="Tin tức">TIN TỨC</a></li>
 
-                <!-- Mục GIÁO DỤC có nhiều mục con bên trong -->
-                <li class="has-dropdown">
-                    <a href="#" class="nav-link" data-category="GROUP:Giáo dục" data-subs="Giáo lý & Thiếu nhi,Dự tòng & Hôn nhân">
-                        GIÁO DỤC <span class="caret">▾</span>
-                    </a>
-                    <ul class="dropdown">
-                        <li><a href="#" class="nav-link" data-category="Giáo lý & Thiếu nhi">Giáo lý & Thiếu nhi</a></li>
-                        <li><a href="#" class="nav-link" data-category="Dự tòng & Hôn nhân">Dự tòng & Hôn nhân</a></li>
-                    </ul>
-                </li>
-
                 <li><a href="#" class="nav-link" data-category="Phụng vụ">PHỤNG VỤ</a></li>
                 <li><a href="#" class="nav-link" data-category="Thông báo">THÔNG BÁO</a></li>
             </ul>
 
-            <div class="nav-search">
-                <input type="text" id="search-input" placeholder="Tìm bài viết...">
+            <!-- Cụm bên phải: Tìm kiếm -> Facebook -> YouTube -> TikTok -->
+            <div class="nav-actions">
+                <button type="button" id="search-open-btn" class="nav-search-btn" aria-label="Tìm kiếm bài viết" title="Tìm kiếm">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="m20 20-3.5-3.5"/>
+                    </svg>
+                </button>
+
+                <a href="https://www.facebook.com/share/19wbJyURnH/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" class="social-btn social-fb" aria-label="Facebook" title="Facebook">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                        <path d="M13.5 22v-8.2h2.7l.4-3.2h-3.1V8.5c0-.9.3-1.6 1.6-1.6h1.7V4.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.4H7.7v3.2h2.7V22h3.1z"/>
+                    </svg>
+                </a>
+
+                <a href="https://youtube.com/@nhathotanthanh?si=b43w_WRY7OGyKf7V" target="_blank" rel="noopener noreferrer" class="social-btn social-yt" aria-label="YouTube" title="YouTube">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                        <path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 4.8 12 4.8 12 4.8s-6 0-7.7.5a2.7 2.7 0 0 0-1.9 1.9A28.4 28.4 0 0 0 2 12a28.4 28.4 0 0 0 .4 4.8 2.7 2.7 0 0 0 1.9 1.9c1.7.5 7.7.5 7.7.5s6 0 7.7-.5a2.7 2.7 0 0 0 1.9-1.9A28.4 28.4 0 0 0 22 12a28.4 28.4 0 0 0-.4-4.8zM10 15.1V8.9l5.4 3.1-5.4 3.1z"/>
+                    </svg>
+                </a>
+
+                <a href="https://www.tiktok.com/@tnttgxtanthanh?_r=1&_t=ZS-9BgwHaaP1eR" target="_blank" rel="noopener noreferrer" class="social-btn social-tt" aria-label="TikTok" title="TikTok">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                        <path d="M19.6 6.4a4.8 4.8 0 0 1-3.1-1.1V4h-3v12.4a2.7 2.7 0 1 1-2.7-2.7c.3 0 .6 0 .8.1v-3a5.7 5.7 0 1 0 5 5.7V9.8a7.8 7.8 0 0 0 4.5 1.4V8.2a4.8 4.8 0 0 1-1.5-1.8z"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </nav>
@@ -128,9 +155,50 @@
         </div>
     </div>
 
+    <!-- Chân trang: chỉ còn mục LIÊN HỆ nằm bên trái -->
     <footer class="site-footer">
-        <div class="container">
-            <p>© 2026 Ban Truyền Thông Họ Đạo Tân Thành</p>
+        <div class="footer-inner">
+            <div class="footer-contact">
+                <h3 class="footer-heading">LIÊN HỆ</h3>
+                <ul class="contact-list">
+                    <li>
+                        <svg class="contact-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        <span>Họ Đạo Tân Thành</span>
+                    </li>
+
+                    <li>
+                        <svg class="contact-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span>Khu Vực Tân Thành, Phường Ngã Năm, Thành Phố Cần Thơ</span>
+                    </li>
+
+                    <li>
+                        <svg class="contact-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                        </svg>
+                        <a href="mailto:nhathotanthanh.contact.vn@gmail.com">nhathotanthanh.contact.vn@gmail.com</a>
+                    </li>
+
+                    <li>
+                        <svg class="contact-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <a href="tel:0909315016">0909315016</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>2026 © - Họ Đạo Tân Thành</span>
         </div>
     </footer>
 
