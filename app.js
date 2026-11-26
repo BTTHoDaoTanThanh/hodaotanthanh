@@ -17,11 +17,55 @@ const navList = document.getElementById("nav-list");
 let allPosts = [];
 let currentCategory = "ALL";
 let currentSubList = [];
+let isHandlingPopState = false;
+
+// Lưu trạng thái lịch sử để bấm nút Trở lại của trình duyệt thoát mục / đóng popup mượt
+function pushNavState(payload) {
+    if (isHandlingPopState) return;
+    try {
+        history.pushState(payload, "", window.location.href);
+    } catch (e) {
+        // Bỏ qua nếu trình duyệt chặn pushState
+    }
+}
+
+function setCategoryState(category, subs = [], linkEl = null, fromPopState = false) {
+    currentCategory = category || "ALL";
+    currentSubList = Array.isArray(subs) ? subs : [];
+
+    document.querySelectorAll(".nav-link").forEach((el) => el.classList.remove("active"));
+    if (linkEl) {
+        linkEl.classList.add("active");
+    } else {
+        const matchedLink = document.querySelector(`.nav-link[data-category="${CSS.escape(currentCategory)}"]`);
+        if (matchedLink) matchedLink.classList.add("active");
+    }
+
+    document.querySelectorAll(".nav-item.has-dropdown.open").forEach((item) => {
+        item.classList.remove("open");
+    });
+    navList.classList.remove("open");
+
+    applyFilters();
+
+    if (!fromPopState) {
+        pushNavState({
+            type: "category",
+            category: currentCategory,
+            subs: currentSubList
+        });
+    }
+}
+
+// Khởi tạo state gốc cho trang đầu tiên
+try {
+    history.replaceState({ type: "category", category: "ALL", subs: [] }, "", window.location.href);
+} catch (e) {}
 
 // Popup tìm kiếm (mở & thoát có animation)
 let searchCloseTimer = null;
 
-function openSearchModal() {
+function openSearchModal(fromPopState = false) {
     if (searchCloseTimer) {
         clearTimeout(searchCloseTimer);
         searchCloseTimer = null;
@@ -29,13 +73,18 @@ function openSearchModal() {
     searchModal.classList.remove("closing");
     searchModal.classList.add("active");
     searchModal.setAttribute("aria-hidden", "false");
+
+    if (!fromPopState) {
+        pushNavState({ type: "overlay", overlay: "search" });
+    }
+
     setTimeout(() => {
         searchInput.focus();
         searchInput.select();
     }, 50);
 }
 
-function closeSearchModal() {
+function closeSearchModal(fromPopState = false) {
     if (!searchModal.classList.contains("active")) return;
     searchModal.classList.add("closing");
     searchModal.classList.remove("active");
@@ -45,14 +94,18 @@ function closeSearchModal() {
         searchModal.classList.remove("closing");
         searchCloseTimer = null;
     }, 240);
+
+    if (!fromPopState && history.state && history.state.overlay === "search") {
+        history.back();
+    }
 }
 
-searchOpenBtn.addEventListener("click", openSearchModal);
-searchModalClose.addEventListener("click", closeSearchModal);
+searchOpenBtn.addEventListener("click", () => openSearchModal(false));
+searchModalClose.addEventListener("click", () => closeSearchModal(false));
 
 searchModal.addEventListener("click", (e) => {
     if (e.target === searchModal) {
-        closeSearchModal();
+        closeSearchModal(false);
     }
 });
 
@@ -65,7 +118,7 @@ searchClearBtn.addEventListener("click", () => {
 searchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
         e.preventDefault();
-        closeSearchModal();
+        closeSearchModal(false);
     }
 });
 
@@ -205,31 +258,23 @@ function escapeHtml(str) {
 document.querySelectorAll(".nav-link[data-category]").forEach((link) => {
     link.addEventListener("click", (e) => {
         e.preventDefault();
-        currentCategory = link.getAttribute("data-category");
-
+        const cat = link.getAttribute("data-category");
         const subsRaw = link.getAttribute("data-subs");
-        currentSubList = subsRaw
+        const subs = subsRaw
             ? subsRaw.split(",").map((s) => s.trim().toLowerCase())
             : [];
 
-        document.querySelectorAll(".nav-link").forEach((el) => el.classList.remove("active"));
-        link.classList.add("active");
-
-        document.querySelectorAll(".nav-item.has-dropdown.open").forEach((item) => {
-            item.classList.remove("open");
-        });
-        navList.classList.remove("open");
-        applyFilters();
+        setCategoryState(cat, subs, link, false);
     });
 });
 
 searchInput.addEventListener("input", applyFilters);
 
-// Modal đọc bài viết (mở & thoát có animation)
+// Modal đọc bài viết (mở & thoát có animation + hỗ trợ nút Back)
 const modal = document.getElementById("post-modal");
 let modalCloseTimer = null;
 
-function closePostModal() {
+function closePostModal(fromPopState = false) {
     if (!modal.classList.contains("active")) return;
     modal.classList.add("closing");
     modal.classList.remove("active");
@@ -240,9 +285,13 @@ function closePostModal() {
         modal.style.display = "none";
         modalCloseTimer = null;
     }, 260);
+
+    if (!fromPopState && history.state && history.state.overlay === "post") {
+        history.back();
+    }
 }
 
-function openPostModal(index) {
+function openPostModal(index, fromPopState = false) {
     const post = allPosts[index];
     if (!post) return;
 
@@ -278,6 +327,10 @@ function openPostModal(index) {
     modal.style.display = "block";
     document.body.style.overflow = "hidden";
 
+    if (!fromPopState) {
+        pushNavState({ type: "overlay", overlay: "post", postIndex: index });
+    }
+
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             modal.classList.add("active");
@@ -285,9 +338,9 @@ function openPostModal(index) {
     });
 }
 
-document.getElementById("modal-close").addEventListener("click", closePostModal);
+document.getElementById("modal-close").addEventListener("click", () => closePostModal(false));
 window.addEventListener("click", (e) => {
-    if (e.target === modal) closePostModal();
+    if (e.target === modal) closePostModal(false);
 });
 
 loadPosts();
@@ -301,16 +354,16 @@ function openPostFromUrl() {
         (p) => String(p.id).trim() === String(targetId).trim()
     );
     if (foundIndex !== -1) {
-        openPostModal(foundIndex);
+        openPostModal(foundIndex, true);
     }
 }
 
-// Lightbox phóng to ảnh (mở & thoát có animation)
+// Lightbox phóng to ảnh (mở & thoát có animation + hỗ trợ nút Back)
 const lightboxEl = document.getElementById("lightbox-overlay");
 const lightboxImgEl = document.getElementById("lightbox-img");
 let lightboxCloseTimer = null;
 
-function openLightbox(src) {
+function openLightbox(src, fromPopState = false) {
     if (!src) return;
     if (lightboxCloseTimer) {
         clearTimeout(lightboxCloseTimer);
@@ -319,10 +372,15 @@ function openLightbox(src) {
     lightboxImgEl.src = src;
     lightboxEl.classList.remove("closing");
     lightboxEl.classList.add("active");
+
+    if (!fromPopState) {
+        pushNavState({ type: "overlay", overlay: "lightbox", src });
+    }
 }
 
-function closeLightbox(event) {
+function closeLightbox(event, fromPopState = false) {
     if (
+        fromPopState ||
         !event ||
         event.target === lightboxEl ||
         event.target.classList.contains("lightbox-close")
@@ -336,36 +394,62 @@ function closeLightbox(event) {
             lightboxImgEl.src = "";
             lightboxCloseTimer = null;
         }, 250);
+
+        if (!fromPopState && history.state && history.state.overlay === "lightbox") {
+            history.back();
+        }
     }
 }
 
+// Lắng nghe nút Trở lại (Back / Forward) của trình duyệt
+window.addEventListener("popstate", (e) => {
+    isHandlingPopState = true;
+
+    if (lightboxEl.classList.contains("active")) {
+        closeLightbox(null, true);
+    } else if (searchModal.classList.contains("active")) {
+        closeSearchModal(true);
+    } else if (modal.classList.contains("active")) {
+        closePostModal(true);
+    }
+
+    const state = e.state;
+    if (state && state.type === "category") {
+        setCategoryState(state.category || "ALL", state.subs || [], null, true);
+    } else if (!state) {
+        setCategoryState("ALL", [], null, true);
+    }
+
+    isHandlingPopState = false;
+});
+
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-        if (searchModal.classList.contains("active")) {
-            closeSearchModal();
-        } else if (lightboxEl.classList.contains("active")) {
-            closeLightbox();
+        if (lightboxEl.classList.contains("active")) {
+            closeLightbox(null, false);
+        } else if (searchModal.classList.contains("active")) {
+            closeSearchModal(false);
         } else if (modal.classList.contains("active")) {
-            closePostModal();
+            closePostModal(false);
         }
     }
 });
 
 document.getElementById("modal-img").addEventListener("click", (e) => {
     e.stopPropagation();
-    openLightbox(e.target.src);
+    openLightbox(e.target.src, false);
 });
 
 document.getElementById("modal-gallery").addEventListener("click", (e) => {
     if (e.target.tagName === "IMG") {
         e.stopPropagation();
-        openLightbox(e.target.src);
+        openLightbox(e.target.src, false);
     }
 });
 
 const parishLogoEl = document.getElementById("parish-logo");
 if (parishLogoEl) {
     parishLogoEl.addEventListener("click", () => {
-        if (parishLogoEl.src) openLightbox(parishLogoEl.src);
+        if (parishLogoEl.src) openLightbox(parishLogoEl.src, false);
     });
 }
