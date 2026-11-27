@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwvB7oCSFtTgE1K9e51hU8l6vLzNGEYC4k_BOccYkwItExeDBU1bUtl094AYVZAf0e2/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwPOFZimEDtYSjpKga_DJPGx4XUSEqEwiJsINXlgeDCPEK2TwTJuU_JytoNcAHzuxgM/exec";
 
 const postsListEl = document.getElementById("posts-list");
 const loaderEl = document.getElementById("loader");
@@ -345,6 +345,25 @@ window.addEventListener("click", (e) => {
 
 loadPosts();
 
+function closePostModal(fromPopState = false) {
+    if (!modal.classList.contains("active")) return;
+    modal.classList.add("closing");
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+
+    modalCloseTimer = setTimeout(() => {
+        const pdfFrame = document.getElementById("modal-pdf-frame");
+        if (pdfFrame) pdfFrame.src = "";
+        modal.classList.remove("closing");
+        modal.style.display = "none";
+        modalCloseTimer = null;
+    }, 260);
+
+    if (!fromPopState && history.state && history.state.overlay === "post") {
+        history.back();
+    }
+}
+
 function openPostModal(index, fromPopState = false) {
     const post = allPosts[index];
     if (!post) return;
@@ -356,6 +375,9 @@ function openPostModal(index, fromPopState = false) {
 
     const modalImg = document.getElementById("modal-img");
     const galleryEl = document.getElementById("modal-gallery");
+    const pdfBoxEl = document.getElementById("modal-pdf-box");
+    const pdfFrameEl = document.getElementById("modal-pdf-frame");
+    const pdfExtLinkEl = document.getElementById("modal-pdf-external");
 
     const albumList = Array.isArray(post.album) && post.album.length > 0
         ? post.album
@@ -369,7 +391,6 @@ function openPostModal(index, fromPopState = false) {
         modalImg.style.display = "none";
     }
 
-    // Luôn hiển thị danh sách ảnh trong #modal-gallery (kể cả khi chỉ có 1 ảnh)
     if (albumList.length > 0) {
         galleryEl.innerHTML = albumList
             .map((url, idx) => `<img src="${url}" alt="Ảnh bài viết ${idx + 1}" loading="lazy">`)
@@ -378,6 +399,18 @@ function openPostModal(index, fromPopState = false) {
     } else {
         galleryEl.innerHTML = "";
         galleryEl.style.display = "none";
+    }
+
+    // Hiển thị khung chiếu PDF phía dưới nếu có file PDF trong thư mục
+    if (post.pdfUrl && pdfBoxEl && pdfFrameEl) {
+        pdfFrameEl.src = post.pdfUrl;
+        if (pdfExtLinkEl) {
+            pdfExtLinkEl.href = post.pdfUrl.replace("/preview", "/view");
+        }
+        pdfBoxEl.style.display = "block";
+    } else if (pdfBoxEl) {
+        if (pdfFrameEl) pdfFrameEl.src = "";
+        pdfBoxEl.style.display = "none";
     }
 
     document.getElementById("modal-cat").textContent = post.chuyenMuc || "Tin tức";
