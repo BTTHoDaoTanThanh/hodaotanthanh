@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwvB7oCSFtTgE1K9e51hU8l6vLzNGEYC4k_BOccYkwItExeDBU1bUtl094AYVZAf0e2/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxhXk-YtW4kIhXNRMwV5C38R0Grq77_McxyBUU4ID56fso1uZoqueRJwgjJcwCGb-fP/exec";
 
 const postsListEl = document.getElementById("posts-list");
 const loaderEl = document.getElementById("loader");
