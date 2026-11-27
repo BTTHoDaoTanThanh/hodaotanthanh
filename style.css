@@ -1132,3 +1132,56 @@
 .modal-gallery img:hover {
     transform: scale(1.03);
 }
+/* Khung chiếu PDF phía dưới trong modal bài viết */
+.modal-pdf-box {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.modal-pdf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.modal-pdf-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.modal-pdf-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary, #1f7a3e);
+    text-decoration: none;
+}
+
+.modal-pdf-link:hover {
+    text-decoration: underline;
+}
+
+.modal-pdf-frame-wrap {
+    width: 100%;
+    height: 520px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #f1f5f9;
+}
+
+.modal-pdf-frame-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .modal-pdf-frame-wrap {
+        height: 380px;
+    }
+}
