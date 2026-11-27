@@ -224,13 +224,14 @@ function renderList(posts) {
     postsListEl.innerHTML = posts
         .map((post, index) => {
             const realIndex = allPosts.indexOf(post);
+            const safeIndex = realIndex !== -1 ? realIndex : index;
             const imgSrc =
                 post.anh ||
                 "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=600&q=80";
             const delayMs = Math.min(index * 45, 360);
 
             return `
-                <article class="news-row card-enter" style="animation-delay: ${delayMs}ms;" onclick="openPostModal(${realIndex})">
+                <article class="news-row card-enter" data-post-index="${safeIndex}" style="animation-delay: ${delayMs}ms;">
                     <div class="thumb-wrap">
                         <img src="${imgSrc}" alt="${escapeHtml(post.tieuDe)}" class="news-thumb" loading="lazy">
                     </div>
@@ -255,6 +256,16 @@ function escapeHtml(str) {
         .replace(/"/g, "&quot;");
 }
 
+// Bắt sự kiện click trực tiếp trên danh sách bài viết
+postsListEl.addEventListener("click", (e) => {
+    const card = e.target.closest(".news-row[data-post-index]");
+    if (!card) return;
+    const idx = Number(card.getAttribute("data-post-index"));
+    if (!Number.isNaN(idx)) {
+        openPostModal(idx, false);
+    }
+});
+
 document.querySelectorAll(".nav-link[data-category]").forEach((link) => {
     link.addEventListener("click", (e) => {
         e.preventDefault();
@@ -275,25 +286,34 @@ const modal = document.getElementById("post-modal");
 let modalCloseTimer = null;
 
 function closePostModal(fromPopState = false) {
-    if (!modal.classList.contains("active")) return;
+    if (!modal) return;
+    if (modalCloseTimer) {
+        clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
+    }
+
     modal.classList.add("closing");
     modal.classList.remove("active");
     document.body.style.overflow = "";
 
     modalCloseTimer = setTimeout(() => {
+        const pdfFrame = document.getElementById("modal-pdf-frame");
+        if (pdfFrame) pdfFrame.src = "";
         modal.classList.remove("closing");
         modal.style.display = "none";
         modalCloseTimer = null;
     }, 260);
 
-    if (!fromPopState && history.state && history.state.overlay === "post") {
-        history.back();
+    if (!fromPopState && window.history && window.history.state && window.history.state.overlay === "post") {
+        try {
+            window.history.back();
+        } catch (err) {}
     }
 }
 
 function openPostModal(index, fromPopState = false) {
     const post = allPosts[index];
-    if (!post) return;
+    if (!post || !modal) return;
 
     if (modalCloseTimer) {
         clearTimeout(modalCloseTimer);
@@ -302,20 +322,47 @@ function openPostModal(index, fromPopState = false) {
 
     const modalImg = document.getElementById("modal-img");
     const galleryEl = document.getElementById("modal-gallery");
+    const pdfBoxEl = document.getElementById("modal-pdf-box");
+    const pdfFrameEl = document.getElementById("modal-pdf-frame");
+    const pdfExtLinkEl = document.getElementById("modal-pdf-external");
 
-    if (post.anh) {
-        modalImg.src = post.anh;
-        modalImg.style.display = "block";
-    } else {
-        modalImg.style.display = "none";
+    const albumList = Array.isArray(post.album) && post.album.length > 0
+        ? post.album
+        : (post.anh ? [post.anh] : []);
+
+    if (modalImg) {
+        if (albumList.length > 0) {
+            modalImg.src = albumList[0];
+            modalImg.style.display = "block";
+        } else {
+            modalImg.src = "";
+            modalImg.style.display = "none";
+        }
     }
 
-    if (Array.isArray(post.album) && post.album.length > 1) {
-        galleryEl.innerHTML = post.album
-            .map((url) => `<img src="${url}" alt="Ảnh hoạt động" loading="lazy">`)
-            .join("");
-    } else {
-        galleryEl.innerHTML = "";
+    if (galleryEl) {
+        if (albumList.length > 0) {
+            galleryEl.innerHTML = albumList
+                .map((url, idx) => `<img src="${url}" alt="Ảnh bài viết ${idx + 1}" loading="lazy">`)
+                .join("");
+            galleryEl.style.display = "grid";
+        } else {
+            galleryEl.innerHTML = "";
+            galleryEl.style.display = "none";
+        }
+    }
+
+    if (pdfBoxEl && pdfFrameEl) {
+        if (post.pdfUrl) {
+            pdfFrameEl.src = post.pdfUrl;
+            if (pdfExtLinkEl) {
+                pdfExtLinkEl.href = post.pdfUrl.replace("/preview", "/view");
+            }
+            pdfBoxEl.style.display = "block";
+        } else {
+            pdfFrameEl.src = "";
+            pdfBoxEl.style.display = "none";
+        }
     }
 
     document.getElementById("modal-cat").textContent = post.chuyenMuc || "Tin tức";
@@ -345,92 +392,17 @@ window.addEventListener("click", (e) => {
 
 loadPosts();
 
-function closePostModal(fromPopState = false) {
-    if (!modal.classList.contains("active")) return;
-    modal.classList.add("closing");
-    modal.classList.remove("active");
-    document.body.style.overflow = "";
+function openPostFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get("bai");
+    if (!targetId || !allPosts.length) return;
 
-    modalCloseTimer = setTimeout(() => {
-        const pdfFrame = document.getElementById("modal-pdf-frame");
-        if (pdfFrame) pdfFrame.src = "";
-        modal.classList.remove("closing");
-        modal.style.display = "none";
-        modalCloseTimer = null;
-    }, 260);
-
-    if (!fromPopState && history.state && history.state.overlay === "post") {
-        history.back();
+    const foundIndex = allPosts.findIndex(
+        (p) => String(p.id).trim() === String(targetId).trim()
+    );
+    if (foundIndex !== -1) {
+        openPostModal(foundIndex, true);
     }
-}
-
-function openPostModal(index, fromPopState = false) {
-    const post = allPosts[index];
-    if (!post) return;
-
-    if (modalCloseTimer) {
-        clearTimeout(modalCloseTimer);
-        modalCloseTimer = null;
-    }
-
-    const modalImg = document.getElementById("modal-img");
-    const galleryEl = document.getElementById("modal-gallery");
-    const pdfBoxEl = document.getElementById("modal-pdf-box");
-    const pdfFrameEl = document.getElementById("modal-pdf-frame");
-    const pdfExtLinkEl = document.getElementById("modal-pdf-external");
-
-    const albumList = Array.isArray(post.album) && post.album.length > 0
-        ? post.album
-        : (post.anh ? [post.anh] : []);
-
-    if (albumList.length > 0) {
-        modalImg.src = albumList[0];
-        modalImg.style.display = "block";
-    } else {
-        modalImg.src = "";
-        modalImg.style.display = "none";
-    }
-
-    if (albumList.length > 0) {
-        galleryEl.innerHTML = albumList
-            .map((url, idx) => `<img src="${url}" alt="Ảnh bài viết ${idx + 1}" loading="lazy">`)
-            .join("");
-        galleryEl.style.display = "grid";
-    } else {
-        galleryEl.innerHTML = "";
-        galleryEl.style.display = "none";
-    }
-
-    // Hiển thị khung chiếu PDF phía dưới nếu có file PDF trong thư mục
-    if (post.pdfUrl && pdfBoxEl && pdfFrameEl) {
-        pdfFrameEl.src = post.pdfUrl;
-        if (pdfExtLinkEl) {
-            pdfExtLinkEl.href = post.pdfUrl.replace("/preview", "/view");
-        }
-        pdfBoxEl.style.display = "block";
-    } else if (pdfBoxEl) {
-        if (pdfFrameEl) pdfFrameEl.src = "";
-        pdfBoxEl.style.display = "none";
-    }
-
-    document.getElementById("modal-cat").textContent = post.chuyenMuc || "Tin tức";
-    document.getElementById("modal-date").textContent = post.ngay || "";
-    document.getElementById("modal-title").textContent = post.tieuDe || "";
-    document.getElementById("modal-content-text").textContent = post.noiDung || "";
-
-    modal.classList.remove("closing");
-    modal.style.display = "block";
-    document.body.style.overflow = "hidden";
-
-    if (!fromPopState) {
-        pushNavState({ type: "overlay", overlay: "post", postIndex: index });
-    }
-
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            modal.classList.add("active");
-        });
-    });
 }
 
 // Lightbox phóng to ảnh (mở & thoát có animation + hỗ trợ nút Back)
@@ -484,7 +456,7 @@ window.addEventListener("popstate", (e) => {
         closeLightbox(null, true);
     } else if (searchModal.classList.contains("active")) {
         closeSearchModal(true);
-    } else if (modal.classList.contains("active")) {
+    } else if (modal && modal.classList.contains("active")) {
         closePostModal(true);
     }
 
@@ -504,7 +476,7 @@ document.addEventListener("keydown", (e) => {
             closeLightbox(null, false);
         } else if (searchModal.classList.contains("active")) {
             closeSearchModal(false);
-        } else if (modal.classList.contains("active")) {
+        } else if (modal && modal.classList.contains("active")) {
             closePostModal(false);
         }
     }
