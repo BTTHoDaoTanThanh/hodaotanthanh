@@ -345,17 +345,59 @@ window.addEventListener("click", (e) => {
 
 loadPosts();
 
-function openPostFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const targetId = params.get("bai");
-    if (!targetId || !allPosts.length) return;
+function openPostModal(index, fromPopState = false) {
+    const post = allPosts[index];
+    if (!post) return;
 
-    const foundIndex = allPosts.findIndex(
-        (p) => String(p.id).trim() === String(targetId).trim()
-    );
-    if (foundIndex !== -1) {
-        openPostModal(foundIndex, true);
+    if (modalCloseTimer) {
+        clearTimeout(modalCloseTimer);
+        modalCloseTimer = null;
     }
+
+    const modalImg = document.getElementById("modal-img");
+    const galleryEl = document.getElementById("modal-gallery");
+
+    const albumList = Array.isArray(post.album) && post.album.length > 0
+        ? post.album
+        : (post.anh ? [post.anh] : []);
+
+    if (albumList.length > 0) {
+        modalImg.src = albumList[0];
+        modalImg.style.display = "block";
+    } else {
+        modalImg.src = "";
+        modalImg.style.display = "none";
+    }
+
+    // Luôn hiển thị danh sách ảnh trong #modal-gallery (kể cả khi chỉ có 1 ảnh)
+    if (albumList.length > 0) {
+        galleryEl.innerHTML = albumList
+            .map((url, idx) => `<img src="${url}" alt="Ảnh bài viết ${idx + 1}" loading="lazy">`)
+            .join("");
+        galleryEl.style.display = "grid";
+    } else {
+        galleryEl.innerHTML = "";
+        galleryEl.style.display = "none";
+    }
+
+    document.getElementById("modal-cat").textContent = post.chuyenMuc || "Tin tức";
+    document.getElementById("modal-date").textContent = post.ngay || "";
+    document.getElementById("modal-title").textContent = post.tieuDe || "";
+    document.getElementById("modal-content-text").textContent = post.noiDung || "";
+
+    modal.classList.remove("closing");
+    modal.style.display = "block";
+    document.body.style.overflow = "hidden";
+
+    if (!fromPopState) {
+        pushNavState({ type: "overlay", overlay: "post", postIndex: index });
+    }
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            modal.classList.add("active");
+        });
+    });
 }
 
 // Lightbox phóng to ảnh (mở & thoát có animation + hỗ trợ nút Back)
